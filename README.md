@@ -1,13 +1,12 @@
-# Odin AI
+# Iris
 
-Odin AI is a comprehensive backend system designed to bridge AI agents (like Claude or Odin) with core business services (`olympus`, `hades`) through the Model Context Protocol (MCP) and standard APIs.
+Iris is a Model Context Protocol (MCP) server that dynamically converts OpenAPI specifications into executable MCP tools. This allows AI agents (like Claude or Gemini) to interact with any REST API that provides an OpenAPI definition.
 
-## Project Overview
+## Features
 
-The system consists of two main server components running within a unified environment:
-
--   **Iris (MCP Server)**: Exposes backend capabilities as "tools" for AI agents. It dynamically generates these tools from OpenAPI specifications.
--   **Janus (API Server)**: Provides standard RESTful endpoints for external integrations and webhooks.
+-   **OpenAPI to MCP**: Automatically fetches OpenAPI documentation from specified URLs and converts endpoints into MCP tools.
+-   **Multiple Services**: Support for connecting multiple OpenAPI services simultaneously.
+-   **Flexible Transport**: Supports HTTP (Streamable), SSE, and Stdio transports.
 
 ## Getting Started
 
@@ -17,57 +16,59 @@ The system consists of two main server components running within a unified envir
 
 ### Installation
 
-1.  **Sync dependencies and set up the virtual environment:**
+1.  **Sync dependencies:**
     ```bash
     uv sync
-    source .venv/bin/activate
     ```
 
 ## Usage
 
-### Running the Application
+### Running the Server
 
-To start the unified server (Janus + Iris) on port **8000**:
+The server requires the `SERVERS_COUNT` and corresponding `SERVERS{i}_OPENAPI_URL` environment variables to be set to point to one or more OpenAPI JSON definitions.
 
-```bash
-uv run server.py
-```
+#### Quick Start (Dev Mode)
 
-You can also specify a custom port via environment variable:
+To run with a sample Petstore API (defined in `pyproject.toml`):
 
 ```bash
-PORT=8080 uv run server.py
+uv run dev
 ```
 
-This starts both services:
--   **Janus API**: `http://localhost:8000/` (Health check available at root)
--   **Iris MCP Server**: `http://localhost:8000/mcp/sse` (SSE transport)
+#### Manual Execution
 
-### Inspecting MCP Server
-
-To interactively debug the MCP server using the [MCP Inspector](https://github.com/modelcontextprotocol/inspector):
+You can specify your own OpenAPI schemas:
 
 ```bash
-npx @modelcontextprotocol/inspector http://localhost:8000/mcp/sse
+SERVERS_COUNT=1 SERVERS0_OPENAPI_URL=https://petstore3.swagger.io/api/v3/openapi.json uv run server.py
 ```
 
-## Modules
+#### Configuration
 
-The project is organized into modular components:
+You can configure the server using environment variables:
 
--   **[Iris (MCP Server)](iris/README.md)**: Connects backend services (`olympus`, `hades`) to AI agents. It fetches OpenAPI docs and converts them into executable MCP tools.
--   **[Janus (API Server)](janus/README.md)**: Provides standard HTTP API endpoints, useful for webhooks or direct integrations.
--   **[Common](common/README.md)**: Contains shared utilities, logging configuration, and assets used across modules.
+-   `SERVERS_COUNT`: (Required) The number of OpenAPI servers you want to connect to (e.g., `2`).
+-   `SERVERS{i}_OPENAPI_URL`: (Required) The URL to the OpenAPI JSON definition for index `i`, starting from `0` (e.g., `SERVERS0_OPENAPI_URL=https://api.example.com/openapi.json`).
+-   `URL_MATCH_FOR_NON_AUTH`: (Optional) A path segment (e.g., `/auth`) that should bypass global authentication headers if applicable.
+-   `PORT`: Port to run the server on (default: `8000`).
+-   `mcp.transport`: Transport mode. Options: `streamable-http` (default), `sse`, `stdio`.
 
-![System Architecture](common/assets/img.png)
-*Connecting with Claude desktop for full LLM testing:*
-![Claude Desktop Integration](common/assets/img_1.png)
+### Inspecting Tools
 
-## Dependencies
+You can use the MCP Inspector to test the tools.
 
-Key dependencies managed by `uv` (see `pyproject.toml`):
+Using the convenience script:
+```bash
+uv run inspector-streamable-http
+```
 
-*   [mcp](https://pypi.org/project/mcp/): For implementing the Model Context Protocol.
-*   [starlette](https://www.starlette.io/): High-performance ASGI framework or the main server.
-*   [flask](https://flask.palletsprojects.com/): WSGI framework for Janus API.
-*   [requests](https://pypi.org/project/requests/): For making HTTP requests to downstream services.
+Or manually:
+```bash
+npx @modelcontextprotocol/inspector http://localhost:8000/mcp
+```
+
+## Project Structure
+
+-   `server.py`: Entry point for the MCP server.
+-   `src/`: Source code including OpenAPI processing logic.
+-   `pyproject.toml`: Project dependencies and scripts.

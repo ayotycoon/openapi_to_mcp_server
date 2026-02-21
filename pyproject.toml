@@ -6,11 +6,11 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "bs4",
+    "jinja2>=3.1.6",
     "mcp[cli]>=1.22.0",
     "requests>=2.32.5",
 ]
 
 [project.scripts]
-dev = "PYTHONPATH=. env=docker uv run iris/server.py"
-inspector-cmd = "DANGEROUSLY_OMIT_AUTH=true npx @modelcontextprotocol/inspector uv run iris/server.py"
-inspector-streamable-http = "npx @modelcontextprotocol/inspector http://localhost:8000/mcp"
+dev = "SERVERS=https://petstore3.swagger.io/api/v3/openapi.json uv run server.py"
+inspector = "DANGEROUSLY_OMIT_AUTH=true npx @modelcontextprotocol/inspector http://localhost:8000/mcp"

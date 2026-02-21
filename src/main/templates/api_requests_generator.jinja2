@@ -1,0 +1,33 @@
+from src.main.utils.mylogger import mylogger
+import requests
+from typing import Literal, Any, Dict, Callable, List, Optional
+from dataclasses import dataclass
+
+{{ response_body_classes }}
+
+def {{ method_name }}({{ args }}) -> {{ response_body_types }}:
+    args_debug_dict = {{ args_debug_dict }}
+    mylogger.info(f"[{{ method_name }}_tool] starting tool - {args_debug_dict.__str__()}")
+
+    try:
+        res = requests.request(
+            method="{{ http_method }}",
+            url=f"{{ url }}",
+            json={{ json }},
+            headers={{ headers }})
+        content_type = res.headers.get('Content-Type', '')
+        mylogger.info(f"[{{ method_name }}_tool] response status={res.status_code} success={res.ok} content_type={content_type} content={res.content}")
+        if res.ok:
+            if 'application/json' in content_type:
+                return res.json()
+            else:
+                return res.text()
+    except Exception as e:
+        mylogger.info(f"[{{ method_name }}_tool] error response - {e}", e)
+    mylogger.info("[{{ method_name }}_tool] ending tool")
+
+    return None
+
+
+if __name__ == "__main__":
+    {{ method_name }}()
